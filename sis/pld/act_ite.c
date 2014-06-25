@@ -124,7 +124,20 @@ node_t *fanin;
 /* from a set of sub-covers in array, and the corresponding ite_s in array_b,
    and the minimum column cover variables in cover, generates an ite for the 
    original function. */
-
+static int compare(obj1, obj2) char *obj1, *obj2;
+{
+    ite_vertex *ite1 = *(ite_vertex **)obj1;
+    ite_vertex *ite2 = *(ite_vertex **)obj2;
+    int value;
+    
+    if((ite1->index_size == 0 ) || (ite2->index_size == 0)) {
+	(void)fprintf(misout, "Hey u DOLT ite of size \n");
+    }
+    if(ite1->index_size == ite2->index_size) value = 0;
+    if(ite1->index_size > ite2->index_size) value = 1;
+    if(ite1->index_size < ite2->index_size) value = -1;
+    return value;
+}
 ite_vertex *
 my_or_ite_F(array_b, cover, array, network)
 array_t *array_b;
@@ -132,7 +145,6 @@ array_t *array;
 sm_row *cover;
 network_t *network;
 {
-    static int compare();
     int  i;
     ite_vertex *vertex;
     sm_element *p;
@@ -154,7 +166,7 @@ network_t *network;
     /* Sort the cubes so that the smaller ite s are at the top so that less fanout 
      * problem also we could use the heuristic merging done earlier*/ 
 
-    array_sort(array_b, compare);
+    array_sort(array_b, &compare);
     ite = ite_OR_itevec(array_b);
     return ite;
 }
@@ -220,22 +232,7 @@ ite_vertex *ite_IF, *ite_THEN, *ite_ELSE;
     return ite;
 }
 
-static int
-compare(obj1, obj2)
-char *obj1, *obj2;
-{
-    ite_vertex *ite1 = *(ite_vertex **)obj1;
-    ite_vertex *ite2 = *(ite_vertex **)obj2;
-    int value;
-    
-    if((ite1->index_size == 0 ) || (ite2->index_size == 0)) {
-	(void)fprintf(misout, "Hey u DOLT ite of size \n");
-    }
-    if(ite1->index_size == ite2->index_size) value = 0;
-    if(ite1->index_size > ite2->index_size) value = 1;
-    if(ite1->index_size < ite2->index_size) value = -1;
-    return value;
-}
+
 
 /*------------------------------------------------------------
   From the row of F, makes a node. This node corresponds to

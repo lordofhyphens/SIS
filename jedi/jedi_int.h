@@ -26,6 +26,7 @@
 /*
  * constants
  */
+#undef INFINITY /* silence a warning, it's already defined */
 #define INFINITY 100000		/* constant for infinity */
 #define BUFSIZE 512		/* buffer size */
 #define INPUT 0			/* input weighting */

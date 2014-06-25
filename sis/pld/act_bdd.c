@@ -11,6 +11,7 @@
 #include "pld_int.h"
 
 static void join();
+static int compare();
 
 /* Initialize the ACT*/
 act_t *
@@ -147,8 +148,8 @@ my_or_act_F(array_b,cover, array)
 array_t *array_b;
 array_t *array;
 sm_row *cover;
+
 {
-    static int compare();
     int  i;
     act_t *up_vertex, *down_vertex, *vertex;
     sm_element *p;
@@ -246,8 +247,7 @@ act_t *vertex;
 }
 
 static int
-compare(obj1, obj2)
-char *obj1, *obj2;
+compare(char* obj1, char* obj2)
 {
     act_t *act1 = *(act_t **)obj1;
     act_t *act2 = *(act_t **)obj2;

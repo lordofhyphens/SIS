@@ -48,6 +48,68 @@ int size;
 }
 
 
+static int
+kernel_value(kernel, cokernel, state)
+node_t *kernel;
+node_t *cokernel;
+char *state;
+{
+    divisor_t *k_data, *c_data;
+    kern_node *store; 
+    node_t *rem , *new_cokernel;
+    int size;
+    int num_nc, num_k, num_node, num_rem, cost;
+    /* int infeasible_nc, infeasible_k, infeasible_rem, total_infeasibility; */
+
+    store = (kern_node *)state;
+    size = store->size;
+    new_cokernel = node_div(store->node, kernel, &rem);
+
+    num_node = node_num_fanin(store->node);
+    num_nc = node_num_fanin(new_cokernel);
+    num_k =  node_num_fanin(kernel);
+    num_rem = node_num_fanin(rem);
+    cost = num_nc + num_k + num_rem;
+
+    /* do infeasibility study */
+    /*------------------------*/
+    /* infeasible_nc = xln_infeasibility_measure(new_cokernel, size);
+    infeasible_k = xln_infeasibility_measure(kernel, size);
+    infeasible_rem = xln_infeasibility_measure(rem, size); */
+
+    /* change the cost by feasibility number */
+    /*---------------------------------------*/
+    /* total_infeasibility = infeasible_nc + infeasible_k + infeasible_rem; */
+
+    /* if all three nodes feasible, accept it definitely */
+    /*---------------------------------------------------*/
+    if ((num_nc == size) && (num_k == size) && (num_rem == size)) cost = -HICOST;
+    /* else cost += total_infeasibility; */
+        
+    /* if((node_num_fanin(new_cokernel) <= size)&&(node_num_fanin(new_cokernel) > 1)){ */
+    if((num_nc > 1) && (num_nc < num_node)) {
+        c_data = ALLOC(divisor_t, 1);
+	c_data->divisor = new_cokernel;
+        /* c_data->kernelsize = 2 * composite_fanin(rem, kernel) + 
+	  node_num_fanin(new_cokernel); */
+        c_data->kernelsize = cost; 
+	array_insert_last(divisor_t *, store->cost_array, c_data);
+    }
+
+    /* if((node_num_fanin(kernel) <= size)&&(node_num_fanin(kernel) > 1)){ */
+    if((num_k > 1) && (num_k < num_node)) {
+        k_data = ALLOC(divisor_t, 1);
+	k_data->divisor = kernel;
+	/* k_data->kernelsize = 2 * composite_fanin(rem ,new_cokernel) +
+	  node_num_fanin(kernel); */
+        k_data->kernelsize = cost;
+	array_insert_last(divisor_t *, store->cost_array, k_data);
+    }
+
+    node_free(rem);
+    node_free(cokernel);
+}
+
 
 int
 split_node(network, node, size) 
@@ -55,7 +117,6 @@ network_t *network;
 node_t *node;
 int size;
 {
-    static int kernel_value();
     int i, value = 1;
     kern_node *sorted;
     divisor_t *div, *best_div;
@@ -138,68 +199,7 @@ int size;
 
 
     
-static int
-kernel_value(kernel, cokernel, state)
-node_t *kernel;
-node_t *cokernel;
-char *state;
-{
-    divisor_t *k_data, *c_data;
-    kern_node *store; 
-    node_t *rem , *new_cokernel;
-    int size;
-    int num_nc, num_k, num_node, num_rem, cost;
-    /* int infeasible_nc, infeasible_k, infeasible_rem, total_infeasibility; */
 
-    store = (kern_node *)state;
-    size = store->size;
-    new_cokernel = node_div(store->node, kernel, &rem);
-
-    num_node = node_num_fanin(store->node);
-    num_nc = node_num_fanin(new_cokernel);
-    num_k =  node_num_fanin(kernel);
-    num_rem = node_num_fanin(rem);
-    cost = num_nc + num_k + num_rem;
-
-    /* do infeasibility study */
-    /*------------------------*/
-    /* infeasible_nc = xln_infeasibility_measure(new_cokernel, size);
-    infeasible_k = xln_infeasibility_measure(kernel, size);
-    infeasible_rem = xln_infeasibility_measure(rem, size); */
-
-    /* change the cost by feasibility number */
-    /*---------------------------------------*/
-    /* total_infeasibility = infeasible_nc + infeasible_k + infeasible_rem; */
-
-    /* if all three nodes feasible, accept it definitely */
-    /*---------------------------------------------------*/
-    if ((num_nc == size) && (num_k == size) && (num_rem == size)) cost = -HICOST;
-    /* else cost += total_infeasibility; */
-        
-    /* if((node_num_fanin(new_cokernel) <= size)&&(node_num_fanin(new_cokernel) > 1)){ */
-    if((num_nc > 1) && (num_nc < num_node)) {
-        c_data = ALLOC(divisor_t, 1);
-	c_data->divisor = new_cokernel;
-        /* c_data->kernelsize = 2 * composite_fanin(rem, kernel) + 
-	  node_num_fanin(new_cokernel); */
-        c_data->kernelsize = cost; 
-	array_insert_last(divisor_t *, store->cost_array, c_data);
-    }
-
-    /* if((node_num_fanin(kernel) <= size)&&(node_num_fanin(kernel) > 1)){ */
-    if((num_k > 1) && (num_k < num_node)) {
-        k_data = ALLOC(divisor_t, 1);
-	k_data->divisor = kernel;
-	/* k_data->kernelsize = 2 * composite_fanin(rem ,new_cokernel) +
-	  node_num_fanin(kernel); */
-        k_data->kernelsize = cost;
-	array_insert_last(divisor_t *, store->cost_array, k_data);
-    }
-
-    node_free(rem);
-    node_free(cokernel);
-}
-
 
 static void
 find_best_div(div, best_div, size)
